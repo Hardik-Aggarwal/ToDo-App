@@ -1,66 +1,62 @@
-import {User} from "../models/user.js";
+import { User } from "../models/user.js";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import {sendCookie} from "../utils/features.js";
+import { sendCookie } from "../utils/features.js";
 import ErrorHandler from "../middlewares/error.js";
 
+export const login = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
 
+    const user = await User.findOne({ email }).select("+password");
 
-export const login = async (req,res,next)=>{
+    if (!user) return next(new ErrorHandler("Invalid Email or Password", 400));
 
-    try {
-        const {email,password} = req.body;
-        let user = await User.findOne({ email }).select("+password");
-        if(!user)
-        {
-            
-            next(new ErrorHandler("Invalid Email or Password",404))
-        }
-        const isMatch = await bcrypt.compare(password,user.password);
-        if(!isMatch)
-        {
-            next(new ErrorHandler("Invalid Email or Password",404))
-        }
-        sendCookie(user,res,200,`Welcome ${user.name}`);
-    } catch (error) {
-        next(error);
-    }
-    
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch)
+      return next(new ErrorHandler("Invalid Email or Password", 400));
+
+    sendCookie(user, res, `Welcome back, ${user.name}`, 200);
+  } catch (error) {
+    next(error);
+  }
 };
 
-export const register = async (req,res,next)=>{
+export const register = async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
 
-    try {
-        const {name,email,password}  = req.body;
-        let user = await User.findOne({ email });
-        if(user)
-        {
-            next(new ErrorHandler("ALready a User",400))
-        }
-        const hashedPassword = await bcrypt.hash(password, 10);
-        user = await User.create({ name, email, password:hashedPassword });
+    let user = await User.findOne({ email });
 
-        sendCookie(user,res,201,"User Registered successfully")
-    } catch (error) {
-        next(error);
-    }
-    
+    if (user) return next(new ErrorHandler("User Already Exist", 400));
 
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    user = await User.create({ name, email, password: hashedPassword });
+
+    sendCookie(user, res, "Registered Successfully", 201);
+  } catch (error) {
+    next(error);
+  }
 };
-export const logout = (req,res)=>{
-    res.status(200).cookie("token","",{
-        expires:new Date(Date.now()),
-        sameSite:process.env.NODE_ENV==='Development'?'lax':"none",//https://web.dev/samesite-cookies-explained/
-        secure:process.env.NODE_ENV==='Development'?false:true
-    }).json({
-        success:true,
-        message:"Logged Out"
-    })
-}
-export const getMyProfile = (req,res)=>{
 
-    res.status(200).json({
-        success:true,
-        user:req.user
+export const getMyProfile = (req, res) => {
+  res.status(200).json({
+    success: true,
+    user: req.user,
+  });
+};
+
+export const logout = (req, res) => {
+  res
+    .status(200)
+    .cookie("token", "", {
+      expires: new Date(Date.now()),
+      sameSite: process.env.NODE_ENV === "Develpoment" ? "lax" : "none",
+      secure: process.env.NODE_ENV === "Develpoment" ? false : true,
     })
+    .json({
+      success: true,
+      user: req.user,
+    });
 };
