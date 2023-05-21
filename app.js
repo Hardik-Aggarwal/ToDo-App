@@ -1,5 +1,5 @@
-import cookieParser from "cookie-parser";
 import express from "express";
+import cookieParser from "cookie-parser";
 import userRouter from "./routes/user.js";
 import taskRouter from "./routes/task.js";
 import {config} from "dotenv";
@@ -28,5 +28,4 @@ app.use("/task",taskRouter);
 app.get("/",(req,res)=>{
     res.send("Nice");
 })
-
-app.use(errorMiddleware); 
+app.use(errorMiddleware);

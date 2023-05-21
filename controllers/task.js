@@ -2,27 +2,28 @@ import ErrorHandler from "../middlewares/error.js";
 import {Task} from "../models/task.js";
  
 
-export const newTask = async (req,res)=>{
+export const newTask = async (req,res,next)=>{
 
     try {
-        const {title,description} = req.body;
-
+        const { title, description } = req.body;
+    
         await Task.create({
-            title,
-            description,
-            user:req.user
+          title,
+          description,
+          user: req.user,
         });
-
+    
         res.status(201).json({
-            message:"Task created"
+          success: true,
+          message: "Task added Successfully",
         });
-    } catch (error) {
-        next(error)
-    }
+      } catch (error) {
+        next(error);
+      }
     
 };
 
-export const getAllTasks = async (req,res)=>{
+export const getAllTasks = async (req,res,next)=>{
     try{
         const myID = req.user._id;
         const tasks = await Task.find({user:myID});
@@ -39,49 +40,42 @@ export const getAllTasks = async (req,res)=>{
     
 }
 
-export const updateTask = async (req,res)=>{
+export const updateTask = async (req,res,next)=>{
 
     try {
         const {taskID} = req.params;
-
-        const task = await Task.findById(taskID);
-
-        if(!task)
-        {
-            next(new ErrorHandler("Task Not Found",404));
-        }
-
+        const task = await Task.findById(req.params.taskID);
+    
+        if (!task) return next(new ErrorHandler("Task not found", 404));
+    
         task.isCompleted = !task.isCompleted;
         await task.save();
-
+    
         res.status(200).json({
-            success:true,
-            message:`Task ${task.title} updated`
+          success: true,
+          message: "Task Updated!",
         });
-    } catch (error) {
+      } catch (error) {
         next(error);
-    }
+      }
 
 }
 
-export const deleteTask = async (req,res)=>{
+export const deleteTask = async (req,res,next)=>{
 
+    
     try {
         const {taskID} = req.params;
-
-        const task = await Task.findById(taskID);
-        if(!task)
-        {
-            next(new ErrorHandler("Task Not Found",404));
-        }
-        await task.deleteOne();
-
-        res.status(200).json({
-            success:true,
-            message:`Task ${task.title} deleted`
-        });
-    } catch (error) {
-        next(error);
-    }
+        const task = await Task.findById(req.params.taskID);
     
+        if (!task) return next(new ErrorHandler("Task not found", 404));
+        await task.deleteOne();
+    
+        res.status(200).json({
+          message: "Task Deleted!",
+          success: true,
+        });
+      } catch (error) {
+        next(error);
+      }
 }
