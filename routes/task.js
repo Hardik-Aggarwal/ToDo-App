@@ -4,7 +4,7 @@ import { newTask,getAllTasks,updateTask,deleteTask } from "../controllers/task.j
 const router = express.Router();
 
 router.post("/new",isAutenticated,newTask)
-router.get("/myTasks",isAutenticated,getAllTasks)
+router.get("/mytasks",isAutenticated,getAllTasks)
 
 
 router.route("/:taskID").put(isAutenticated,updateTask).delete(isAutenticated,deleteTask);
